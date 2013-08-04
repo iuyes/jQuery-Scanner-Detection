@@ -9,7 +9,7 @@
  * Project home:
  * https://github.com/julien-maurel/jQuery-Scanner-Detection
  *
- * Version: 1.0.0
+ * Version: 1.1.0
  *
  */
 (function($){
@@ -24,7 +24,7 @@
         }
 
         var defaults={
-            onComplete:function(){}, // Callback after detection of a successfull scanning (scanned string in parameter)
+            onComplete:false, // Callback after detection of a successfull scanning (scanned string in parameter)
             onError:false, // Callback after detection of a unsuccessfull scanning (scanned string in parameter)
             onReceive:false, // Callback after receive a char (scanned char in parameter)
             timeBeforeScanTest:100, // Wait duration (ms) after keypress event to check if scanning is finished
@@ -32,13 +32,17 @@
             minLength:6, // Minimum length for a scanning
             endChar:[9,13], // Chars to remove and means end of scanning
             stopPropagation:false, // Stop immediate propagation on keypress event
-            preventDefault:false, // Prevent default action on keypress event
+            preventDefault:false // Prevent default action on keypress event
         };
         if(typeof options==="function"){
             options={onComplete:options}
         }
-        options=$.extend({},defaults,options);
-
+        if(typeof options!=="object"){
+            options=$.extend({},defaults);
+        }else{
+            options=$.extend({},defaults,options);
+        }
+        
         this.each(function(){
             var self=this, $self=$(self), firstCharTime=0, lastCharTime=0, stringWriting='', callIsScanner=false, testTimer=false;
             var initScannerDetection=function(){
@@ -49,11 +53,13 @@
                 // If all condition are good (length, time...), call the callback and re-initialize the plugin for next scanning
                 // Else, just re-initialize
                 if(stringWriting.length>=options.minLength && lastCharTime-firstCharTime<stringWriting.length*options.avgTimeByChar){
-                    options.onComplete.call(self,stringWriting);
+                    if(options.onComplete) options.onComplete.call(self,stringWriting);
+                    $self.trigger('scannerDetectionComplete',{string:stringWriting});
                     initScannerDetection();
                     return true;
                 }else{
                     if(options.onError) options.onError.call(self,stringWriting);
+                    $self.trigger('scannerDetectionError',{string:stringWriting});
                     initScannerDetection();
                     return false;
                 }
@@ -84,7 +90,8 @@
                     testTimer=setTimeout(isScanner,options.timeBeforeScanTest);
                 }
                 
-                if(options.onReceive) options.onReceive.call(self,e.which);
+                if(options.onReceive) options.onReceive.call(self,e);
+                $self.trigger('scannerDetectionReceive',{evt:e});
             });
         });
         return this;

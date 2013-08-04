@@ -1,2 +1,5 @@
+1.1.0
+ Add events scannerDetectionComplete, scannerDetectionError, scannerDetectionReceive
+
 1.0.0
  Initial version
