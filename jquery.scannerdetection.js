@@ -9,7 +9,7 @@
  * Project home:
  * https://github.com/julien-maurel/jQuery-Scanner-Detection
  *
- * Version: 1.1.0
+ * Version: 1.1.1
  *
  */
 (function($){
@@ -18,7 +18,7 @@
         // If string given, call onComplete callback
         if(typeof options==="string"){
             this.each(function(){
-                $(this).data('scannerDetection').options.onComplete.call(this,options);
+                this.scannerDetectionTest(options);
             });
             return this;
         }
@@ -49,7 +49,12 @@
                 firstCharTime=0;
                 stringWriting='';
             };
-            var isScanner=function(){
+            self.scannerDetectionTest=function(s){
+                // If string is given, test it
+                if(s){
+                    firstCharTime=lastCharTime=0;
+                    stringWriting=s;
+                }
                 // If all condition are good (length, time...), call the callback and re-initialize the plugin for next scanning
                 // Else, just re-initialize
                 if(stringWriting.length>=options.minLength && lastCharTime-firstCharTime<stringWriting.length*options.avgTimeByChar){
@@ -84,10 +89,10 @@
 
                 if(testTimer) clearTimeout(testTimer);
                 if(callIsScanner){
-                    isScanner();
+                    self.scannerDetectionTest();
                     testTimer=false;
                 }else{
-                    testTimer=setTimeout(isScanner,options.timeBeforeScanTest);
+                    testTimer=setTimeout(self.scannerDetectionTest,options.timeBeforeScanTest);
                 }
                 
                 if(options.onReceive) options.onReceive.call(self,e);
