@@ -9,7 +9,7 @@
  * Project home:
  * https://github.com/julien-maurel/jQuery-Scanner-Detection
  *
- * Version: 1.1.1
+ * Version: 1.1.2
  *
  */
 (function($){
@@ -69,7 +69,19 @@
                     return false;
                 }
             }
-            $self.data('scannerDetection',{options:options}).unbind('.scannerDetection').bind('keypress.scannerDetection',function(e){
+            $self.data('scannerDetection',{options:options}).unbind('.scannerDetection').bind('keydown.scannerDetection',function(e){
+                // Add event on keydown because keypress is not triggered for non character keys (tab, up, down...)
+                // So need that to check endChar (that is often tab or enter) and call keypress if necessary
+                if(firstCharTime && options.endChar.indexOf(e.which)!==-1){
+                    // Clone event, set type and trigger it
+                    var e2=jQuery.Event('keypress',e);
+                    e2.type='keypress.scannerDetection';
+                    $self.triggerHandler(e2);
+                    // Cancel default
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                }
+            }).bind('keypress.scannerDetection',function(e){
                 if(options.stopPropagation) e.stopImmediatePropagation();
                 if(options.preventDefault) e.preventDefault();
 
